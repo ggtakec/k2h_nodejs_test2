@@ -1,0 +1,149 @@
+#
+# K2HASH
+#
+# Copyright 2020 Yahoo Japan corporation.
+#
+# K2HASH is key-valuew store base libraries.
+# K2HASH is made for the purpose of the construction of
+# original KVS system and the offer of the library.
+# The characteristic is this KVS library which Key can
+# layer. And can support multi-processing and multi-thread,
+# and is provided safely as available KVS.
+#
+# For the full copyright and license information, please view
+# the license file that was distributed with this source code.
+#
+# AUTHOR:   Takeshi Nakatani
+# CREATE:   Wed, Nov 18 2020
+# REVISION: 1.0
+#
+
+#------------------------------------------------------------------------------------
+# Github Actions
+#------------------------------------------------------------------------------------
+name: NodeJS addon AntPickax CI
+
+#
+# Events
+#
+on:
+  push:
+    branches-ignore:
+      - 'gh-pages'
+    tags:
+      - '*'
+  pull_request:
+  #
+  # CRON event is fire on every sunday(UTC).
+  #
+  schedule:
+    - cron: '0 15 * * 0'
+
+#
+# Npm Trusted Publishing + OIDC
+#
+permissions:
+  contents: write
+  id-token: write
+
+#
+# Jobs
+#
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      #
+      # do not stop jobs automatically if any of the jobs fail
+      #
+      fail-fast: false
+
+      matrix:
+        container:
+          - ubuntu:24.04
+          - ubuntu:22.04
+          - debian:trixie
+          - debian:bookworm
+          - debian:bullseye
+          - rockylinux/rockylinux:10
+          - rockylinux:9
+          - rockylinux:8
+          - fedora:42
+          - fedora:41
+          - alpine:3.22
+          - alpine:3.21
+          - alpine:3.20
+
+        node-version:
+          - 20
+          - 22
+          - 24
+
+    container:
+      image: ${{ matrix.container }}
+
+    env:
+      #
+      # Installation special environment variables for ubuntu(debian).
+      #
+      DEBIAN_FRONTEND:  noninteractive
+
+    # [NOTE] about shell
+    # In rockylinux:10, an error occurs when executing that the shell(sh) cannot be found.
+    # Therefore, each step is executed with an explicit shell(specified full path like /bin/sh).
+    #
+    steps:
+      #
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your
+      # job can access it
+      #
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      #
+      # Set environments from secrets
+      #
+      # [NOTE] Secrets
+      # Use Secrets of organization or repository as parameters to
+      # pass to nodejs_addon_helper.sh for building and packaging, .
+      #
+      # The available Secret variables are listed below:
+      #    GITHUB_TOKEN               : Github token(automatically set by github actions)
+      #    NODEJS_TYPE_VARS_FILE      : specify custom variables file
+      #    FORCE_PUBLISHER            : nodejs major version to publish packages
+      #    FORCE_NOT_PUBLISHER        : do not allow to publish any packages(for forked repository)
+      #    USE_PACKAGECLOUD_REPO      : true means using pacakgecloud.io repo, false is not using
+      #    PACKAGECLOUD_OWNER         : owner name as a pat of path to packagcloud.io for downloading
+      #    PACKAGECLOUD_DOWNLOAD_REPO : repo name as a pat of path to packagcloud.io for downloading
+      #    NPM_TOKEN                  : [Deprecated] The token for publishing to npm
+      #
+      # Since we're using NPM Trusted publishing, there's no need to specify NPM_TOKEN.
+      # However, if you set NPM_TOKEN(not recommended), publishing will be performed using it.
+      #
+      - name: Set environments from secrets
+        run: |
+          echo "ENV_GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}"                             >> "${GITHUB_ENV}"
+          echo "ENV_NODEJS_TYPE_VARS_FILE=${{ secrets.NODEJS_TYPE_VARS_FILE }}"           >> "${GITHUB_ENV}"
+          echo "ENV_FORCE_PUBLISHER=${{ secrets.FORCE_PUBLISHER }}"                       >> "${GITHUB_ENV}"
+          echo "ENV_FORCE_NOT_PUBLISHER=${{ secrets.FORCE_NOT_PUBLISHER }}"               >> "${GITHUB_ENV}"
+          echo "ENV_USE_PACKAGECLOUD_REPO=${{ secrets.USE_PACKAGECLOUD_REPO }}"           >> "${GITHUB_ENV}"
+          echo "ENV_PACKAGECLOUD_OWNER=${{ secrets.PACKAGECLOUD_OWNER }}"                 >> "${GITHUB_ENV}"
+          echo "ENV_PACKAGECLOUD_DOWNLOAD_REPO=${{ secrets.PACKAGECLOUD_DOWNLOAD_REPO }}" >> "${GITHUB_ENV}"
+          echo "ENV_NPM_TOKEN=${{ secrets.NPM_TOKEN }}"                                   >> "${GITHUB_ENV}"
+
+      #
+      # Run building and packaging helper
+      #
+      - name: Run building and packaging
+        run: |
+          /bin/sh -c "$GITHUB_WORKSPACE/.github/workflows/nodejs_addon_helper.sh -os ${{ matrix.container }} -node ${{ matrix.node-version }}"
+
+#
+# Local variables:
+# tab-width: 4
+# c-basic-offset: 4
+# End:
+# vim600: expandtab sw=4 ts=4 fdm=marker
+# vim<600: expandtab sw=4 ts=4
+#
