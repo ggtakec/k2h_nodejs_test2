@@ -1,6 +1,6 @@
 {
   "name": "@ggtakec/k2hnodejstest2",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Test2 for K2HASH addon library",
   "os": "linux",
   "main": "index.js",
@@ -19,6 +19,9 @@
     "build/cjs/index.js",
     "build/esm/index.js",
     "build/Release/*.node",
+    "buildutils/make_node_prebuild_variables.sh",
+    "buildutils/node_prebuild_install.sh",
+    "buildutils/node_prebuild.sh",
     "README.md",
     "LICENSE"
   ],
@@ -45,7 +48,7 @@
    },
   "scripts": {
     "help": "echo 'command list:\n    npm run install\n    npm run install:onlypackages\n    npm run build\n    npm run build:ts\n    npm run build:ts:cjs\n    npm run build:ts:esm\n    npm run build:ts:tests:cjs\n    npm run build:types\n    npm run build:checktypes\n    npm run build:configure\n    npm run build:rebuild\n    npm run build:bundle:esm\n    npm run build:prebuild\n    npm run build:prebuild:pure\n    npm run prepublishOnly\n    npm run prepare\n    npm run lint\n    npm run test\n    npm run test:all\n    npm run test:smoke\n    npm run test:smoke:cjs\n    npm run test:smoke:esm\n    npm run test:smoke:ts\n    npm run test:k2hash\n    npm run test:k2hqueue\n    npm run test:k2hkeyqueue\n'",
-    "install": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Install' && GYP_DEFINES=openssl_fips= prebuild-install || echo '[INFO] No prebuilt binary found but skipping local rebuild' && echo '-> [DONE] Install\n'",
+    "install": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Install' && ./buildutils/node_prebuild_install.sh || (echo '[INFO] No prebuilt binary found, building from source' && npm run build:rebuild) && echo '-> [DONE] Install\n'",
     "install:onlypackages": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Install:onlypackages' && npm install --ignore-scripts && echo '-> [DONE] Install:onlypackages\n'",
     "build": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Build' && npm run build:checktypes && npm run build:configure && npm run build:rebuild && npm run build:ts && echo '-> [DONE] Build\n'",
     "build:ts": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Build:ts' && npm run build:ts:cjs && npm run build:ts:esm && echo '-> [DONE] Build:ts\n'",

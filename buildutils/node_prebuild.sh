@@ -58,7 +58,6 @@ SRCTOP=$(cd "${SCRIPTDIR}"/.. || exit 1; pwd)
 MAKE_VARS_FILE="make_node_prebuild_variables.sh"
 MAKE_VARS_BIN="${SCRIPTDIR}/${MAKE_VARS_FILE}"
 META_JSON_FILE="metadata.json"
-SHAR256_FILE_SUFFIX=".sha256"
 
 #
 # Variables for prebuild
@@ -66,8 +65,9 @@ SHAR256_FILE_SUFFIX=".sha256"
 PREBUILD_NAME="prebuild"
 PREBUILD_PARAMTERS=$("${MAKE_VARS_BIN}" --prebuild-parameters)
 PREBUILD_OUTPUT_DIR=$("${MAKE_VARS_BIN}" --output-dirname)
-PREBUILD_OUTPUT_FILENAME=$("${MAKE_VARS_BIN}" --output-filename)
-RENAMED_FILENAME=$("${MAKE_VARS_BIN}" --rename-filename)
+PREBUILD_OUTPUT_FILENAME=$("${MAKE_VARS_BIN}" --prebuild-filename)
+RENAMED_FILENAME=$("${MAKE_VARS_BIN}" --tgz-filename)
+SHA256_FILENAME=$("${MAKE_VARS_BIN}" --sha256-filename)
 RENAMED_TAR_FILENAME=$(echo "${RENAMED_FILENAME}" | sed 's#\.tar\.gz$#\.tar#g')
 
 #
@@ -315,7 +315,7 @@ PRNMSG "Create signature(SHA256) for binary package"
 _CUR_DIR=$(pwd)
 cd "${SRCTOP}/${PREBUILD_OUTPUT_DIR}" || exit 1
 
-if ! sha256sum "${RENAMED_FILENAME}" > "${RENAMED_FILENAME}${SHAR256_FILE_SUFFIX}" 2>/dev/null; then
+if ! sha256sum "${RENAMED_FILENAME}" > "${SHA256_FILENAME}" 2>/dev/null; then
 	PRNERR "Failed to create signature(SHA256) for binary package"
 	exit 1
 fi
@@ -347,16 +347,14 @@ PRNINFO "Succeed to run build:ts"
 PRNSUCCESS "Created binary package with metadata.json and sigunature files"
 
 echo "    ${CGRN}Directory${CDEF}:      ${PREBUILD_OUTPUT_DIR}"
-
 echo "    ${CGRN}Binary file${CDEF}:    ${RENAMED_FILENAME}"
 if ({ tar tvfz "${SRCTOP}/${PREBUILD_OUTPUT_DIR}/${RENAMED_FILENAME}" 2>&1 || echo > "${PIPEFAILURE_FILE}"; } | sed -e 's|^|                      |g') && rm "${PIPEFAILURE_FILE}" >/dev/null 2>&1; then
 	PRNERR "Failed to unzip ${RENAMED_FILENAME}"
 	exit 1
 fi
-
-echo "    ${CGRN}Signature file${CDEF}: ${RENAMED_FILENAME}${SHAR256_FILE_SUFFIX}"
-if ({ cat "${SRCTOP}/${PREBUILD_OUTPUT_DIR}/${RENAMED_FILENAME}${SHAR256_FILE_SUFFIX}" 2>&1 || echo > "${PIPEFAILURE_FILE}"; } | sed -e 's|^|                      |g') && rm "${PIPEFAILURE_FILE}" >/dev/null 2>&1; then
-	PRNERR "Failed to dump ${RENAMED_FILENAME}${SHAR256_FILE_SUFFIX}"
+echo "    ${CGRN}Signature file${CDEF}: ${SHA256_FILENAME}"
+if ({ cat "${SRCTOP}/${PREBUILD_OUTPUT_DIR}/${SHA256_FILENAME}" 2>&1 || echo > "${PIPEFAILURE_FILE}"; } | sed -e 's|^|                      |g') && rm "${PIPEFAILURE_FILE}" >/dev/null 2>&1; then
+	PRNERR "Failed to dump ${SHA256_FILENAME}"
 	exit 1
 fi
 echo ""

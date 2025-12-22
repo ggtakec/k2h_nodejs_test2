@@ -50,18 +50,50 @@ OUTPUT_BASE_DIR="prebuilds"
 #---------------------------------------------------------------
 # Utilities
 #---------------------------------------------------------------
+#TEST
 #
-# Package name and Package version
+# Github repository (for asset url)
+#
+#TEST
+
+#TEST
+#		#
+#		# Package name and Package version
+#		#
+#		PKG_NAME=""
+#		PKG_VERSION=""
+#		if [ ! -f "${SRCTOP}/${PACKAGE_JSON_FILE}" ]; then
+#			echo "Not found ${PACKAGE_JSON_FILE} file" 1>&2
+#			exit 1
+#		else
+#			PKG_NAME=$(grep -i '"name"' "${SRCTOP}/${PACKAGE_JSON_FILE}" | sed -e 's|[,"]||g' | awk '{print $2}')
+#			PKG_VERSION=$(grep -i '"version"' "${SRCTOP}/${PACKAGE_JSON_FILE}" | sed -e 's|[,"]||g' | awk '{print $2}')
+#		fi
+#----------------------------
+
+#
+# Package name and Package version, Github repository (for asset url)
 #
 PKG_NAME=""
 PKG_VERSION=""
+GITHUB_DOMAIN_NAME=""
+GITHUB_API_DOMAIN_NAME=""
+GITHUB_OWNER_NAME=""
+GITHUB_REPO_NAME=""
 if [ ! -f "${SRCTOP}/${PACKAGE_JSON_FILE}" ]; then
 	echo "Not found ${PACKAGE_JSON_FILE} file" 1>&2
 	exit 1
 else
 	PKG_NAME=$(grep -i '"name"' "${SRCTOP}/${PACKAGE_JSON_FILE}" | sed -e 's|[,"]||g' | awk '{print $2}')
 	PKG_VERSION=$(grep -i '"version"' "${SRCTOP}/${PACKAGE_JSON_FILE}" | sed -e 's|[,"]||g' | awk '{print $2}')
+
+	_TMP_REPO_URL=$(tr -d '\n' < "${SRCTOP}/${PACKAGE_JSON_FILE}" 2>/dev/null | sed -e 's#^.*\"repository\"[[:space:]]*:##g' -e 's#}.*$##g' -e 's#.*\"url\"[[:space:]]*:[[:space:]]*##g' -e 's#"##g' -e 's#^[[:space:]]*##g' -e 's#[[:space:]]*$##g')
+	GITHUB_DOMAIN_NAME=$(printf '%s' "${_TMP_REPO_URL}" | sed -e 's#git@##g' -e 's#http.*://##g' -e 's#:.*$##g' -e 's#/.*$##g')
+	GITHUB_API_DOMAIN_NAME="api.${GITHUB_DOMAIN_NAME}"
+	GITHUB_OWNER_NAME=$(printf '%s' "${_TMP_REPO_URL}" | awk -F'[/.:]' '{print $(NF-2)}')
+	GITHUB_REPO_NAME=$(printf '%s' "${_TMP_REPO_URL}" | awk -F'[/.:]' '{print $(NF-1)}')
 fi
+#TEST
 
 #
 # Libc type
@@ -194,7 +226,7 @@ fi
 #
 #	Final filename(rename from output filename)
 #		<pkgname(no scope)>-v<pkg version>-node-v<ABI version>-node<node major version>-napi<N-API version>-<platform name>-<distro name><distro major version>-<arch name>-<libc type>.tar.gz
-#		pkgname-v1.0.0-node-v137-node22-napi10-linux-x86_64-glibc.tar.gz
+#		pkgname-v1.0.0-node-v137-node22-napi10-linux-ubuntu24-x86_64-glibc.tar.gz
 #
 #	Prebuild command parameters:
 #		--strip --napi --platform <platform name> --arch <arch name> --target <node full version> --libc <libc type>
@@ -210,10 +242,22 @@ else
 	OUTPUT_SUBDIR=""
 fi
 
+SHAR256_FILE_SUFFIX=".sha256"
 OUTDIR_PATH="${OUTPUT_BASE_DIR}${OUTPUT_SUBDIR}"
 PREBUILD_OUTPUT_TGZ="${PKG_NOSCOPE_NAME}-v${PKG_VERSION}${FILE_ABI_PARAM}${FILE_PLATFORM_PARAM}${LIBC_TYPE}${FILE_ARCH_PARAM}.tar.gz"
 RENAME_PKG_TGZ="${PKG_NOSCOPE_NAME}-v${PKG_VERSION}${FILE_ABI_PARAM}${FILE_TARGET_PARAM}${FILE_NAPI_PARAM}${FILE_PLATFORM_PARAM}${FILE_DISTRO_PARAM}${FILE_ARCH_PARAM}${FILE_LIBC_PARAM}.tar.gz"
+RENAME_PKG_SHA256="${RENAME_PKG_TGZ}${SHAR256_FILE_SUFFIX}"
 PREBUILD_PARAMTERS="--strip --napi ${PREBUILD_PLATFORM_PARAM} ${PREBUILD_ARCH_PARAM} ${PREBUILD_TARGET_PARAM} ${PREBUILD_LIBC_PARAM}"
+
+#
+# Github asset urls
+#
+#	URL:
+#		https://github.com/<owner>/<repo>/releases/download/v<version>/<tgz file name>
+#		https://github.com/<owner>/<repo>/releases/download/v<version>/<sha256 file name>
+#
+GITHUB_ASSET_TGZ_URL="https://${GITHUB_DOMAIN_NAME}/${GITHUB_OWNER_NAME}/${GITHUB_REPO_NAME}/releases/download/v${PKG_VERSION}/${RENAME_PKG_TGZ}"
+GITHUB_ASSET_SHA256_URL="https://${GITHUB_DOMAIN_NAME}/${GITHUB_OWNER_NAME}/${GITHUB_REPO_NAME}/releases/download/v${PKG_VERSION}/${RENAME_PKG_SHA256}"
 
 #---------------------------------------------------------------
 # Main process
@@ -243,9 +287,21 @@ elif echo "$1" | grep -q -i -e "^--help$" -e "^-h$"; then
 	echo "  --node-abi-version(-av)     : Get node ABI version(ex, 137)"
 	echo "  --napi-version(-na)         : Get N-API library version(ex, 10)"
 	echo "  --output-dirname(-od)       : Get directory name for prebuild output(ex, prebuilds or prebuilds/<scope>)"
-	echo "  --output-filename(-of)      : Get output filename created by prebuild under output directory(ex, <pkgname>-v1.0.0-node-v137-linuxglibc-x86_64.tar.gz)"
-	echo "  --rename-filename(-rf)      : Get the filename to rename the file created by prebuild(e.g. pkgname-v1.0.0-node-v137-node22-napi10-linux-x86_64-glibc.tar.gz)"
+#TEST
+#			echo "  --output-filename(-of)      : Get output filename created by prebuild under output directory(ex, <pkgname>-v1.0.0-node-v137-linuxglibc-x86_64.tar.gz)"
+#			echo "  --rename-filename(-rf)      : Get the filename to rename the file created by prebuild(e.g. pkgname-v1.0.0-node-v137-node22-napi10-linux-x86_64-glibc.tar.gz)"
+#			echo "  --prebuild-parameters(-pp)  : Get all prebuild command parameters(ex, --strip --napi --platform linux --arch x86_64 --target 24.11.1 --libc glibc)"
 	echo "  --prebuild-parameters(-pp)  : Get all prebuild command parameters(ex, --strip --napi --platform linux --arch x86_64 --target 24.11.1 --libc glibc)"
+	echo "  --prebuild-filename(-pf)    : Get output filename created by prebuild under output directory(ex, <pkgname>-v1.0.0-node-v137-linuxglibc-x86_64.tar.gz)"
+	echo "  --tgz-filename(-tf)         : Get the filename to rename the file created by prebuild(e.g. pkgname-v1.0.0-node-v137-node22-napi10-linux-x86_64-glibc.tar.gz)"
+	echo "  --sha256-filename(-tf)      : Get the filename to sha256 file for renamed tgz file(e.g. pkgname-v1.0.0-node-v137-node22-napi10-linux-x86_64-glibc.tar.gz.sha256)"
+	echo "  --tgz-download-url(-td)     : Get download URL for tgz asset file(e.g. https://github.com/<owner>/<repo>/releases/download/v<version>/<tgz file name>)"
+	echo "  --sha256-download-url(-sd)  : Get download URL for sha256 asset file(e.g. https://github.com/<owner>/<repo>/releases/download/v<version>/<sha256 file name>)"
+	echo "  --github-domain(-gd)        : Get github domain name(ex, github.com)"
+	echo "  --github-api-domain(-ad)    : Get github api domain name(ex, api.github.com)"
+	echo "  --package-owner(-po)        : Get github owner(organaization) name(ex, antpickax)"
+	echo "  --package-repogitry(-pr)    : Get github repository name(ex, myrepository)"
+#TEST
 	echo ""
 
 elif echo "$1" | grep -q -i -e "^--package-name$" -e "^-pk$"; then
@@ -287,15 +343,57 @@ elif echo "$1" | grep -q -i -e "^--napi-version$" -e "^-na$"; then
 elif echo "$1" | grep -q -i -e "^--output-dirname$" -e "^-od$"; then
 	printf '%s' "${OUTDIR_PATH}" 2>/dev/null
 
-elif echo "$1" | grep -q -i -e "^--output-filename$" -e "^-of$"; then
-	printf '%s' "${PREBUILD_OUTPUT_TGZ}" 2>/dev/null
-
-elif echo "$1" | grep -q -i -e "^--rename-filename$" -e "^-rf$"; then
-	printf '%s' "${RENAME_PKG_TGZ}" 2>/dev/null
-
+#TEST
 elif echo "$1" | grep -q -i -e "^--prebuild-parameters$" -e "^-pp$"; then
 	printf '%s' "${PREBUILD_PARAMTERS}" 2>/dev/null
+
+#TEST
+
+#TEST
+#		elif echo "$1" | grep -q -i -e "^--output-filename$" -e "^-of$"; then
+#			printf '%s' "${PREBUILD_OUTPUT_TGZ}" 2>/dev/null
+elif echo "$1" | grep -q -i -e "^--prebuild-filename$" -e "^-pf$"; then
+	printf '%s' "${PREBUILD_OUTPUT_TGZ}" 2>/dev/null
+#TEST
+
+#TEST
+#		elif echo "$1" | grep -q -i -e "^--rename-filename$" -e "^-rf$"; then
+#			printf '%s' "${RENAME_PKG_TGZ}" 2>/dev/null
+elif echo "$1" | grep -q -i -e "^--tgz-filename$" -e "^-rf$"; then
+	printf '%s' "${RENAME_PKG_TGZ}" 2>/dev/null
+#TEST
+
+#TEST
+elif echo "$1" | grep -q -i -e "^--sha256-filename$" -e "^-sf$"; then
+	printf '%s' "${RENAME_PKG_SHA256}" 2>/dev/null
+#TEST
+
+#TEST
+#		elif echo "$1" | grep -q -i -e "^--prebuild-parameters$" -e "^-pp$"; then
+#			printf '%s' "${PREBUILD_PARAMTERS}" 2>/dev/null
+#		fi
+#TEST
+
+#TEST
+elif echo "$1" | grep -q -i -e "^--tgz-download-url$" -e "^-td$"; then
+	printf '%s' "${GITHUB_ASSET_TGZ_URL}" 2>/dev/null
+
+elif echo "$1" | grep -q -i -e "^--sha256-download-url$" -e "^-sd$"; then
+	printf '%s' "${GITHUB_ASSET_SHA256_URL}" 2>/dev/null
+
+elif echo "$1" | grep -q -i -e "^--github-domain$" -e "^-gd$"; then
+	printf '%s' "${GITHUB_DOMAIN_NAME}" 2>/dev/null
+
+elif echo "$1" | grep -q -i -e "^--github-api-domain$" -e "^-ad$"; then
+	printf '%s' "${GITHUB_API_DOMAIN_NAME}" 2>/dev/null
+
+elif echo "$1" | grep -q -i -e "^--package-owner$" -e "^-po$"; then
+	printf '%s' "${GITHUB_OWNER_NAME}" 2>/dev/null
+
+elif echo "$1" | grep -q -i -e "^--package-repogitry$" -e "^-pr$"; then
+	printf '%s' "${GITHUB_REPO_NAME}" 2>/dev/null
 fi
+#TEST
 
 exit 0
 
