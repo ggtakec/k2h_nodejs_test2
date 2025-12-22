@@ -204,7 +204,7 @@ check_and_download_asset_file()
 	#
 	# metadata.json file
 	#
-	if [ ! -f "${SRCTOP}/${META_JSON_FILE}" >/dev/null 2>&1; then
+	if [ ! -f "${SRCTOP}/${META_JSON_FILE}" ]; then
 		PRNERR "Not found ${META_JSON_FILE} file."
 		return 1
 	fi
