@@ -126,7 +126,7 @@ check_and_download_asset_file()
 	#
 	# Download TGZ and sha256 file
 	#
-	if ! _RESULT_CODE=$("${CURLCMD}" -s -S -w '%{http_code}' -o "${SRCTOP}/${ASSET_TGZ_FILENAME}" -X GET "${ASSET_TGZ_DOWNLOAD_URL}" --insecure); then
+	if ! _RESULT_CODE=$("${CURLCMD}" -s -S -L -w '%{http_code}' -o "${SRCTOP}/${ASSET_TGZ_FILENAME}" -X GET "${ASSET_TGZ_DOWNLOAD_URL}" --insecure); then
 		PRNINFO "Failed to get download tgz file(${ASSET_TGZ_FILENAME})."
 		rm -f "${SRCTOP}/${ASSET_TGZ_FILENAME}" 2>/dev/null
 		return 1
@@ -140,7 +140,7 @@ check_and_download_asset_file()
 		PRNINFO "Not found ${ASSET_TGZ_FILENAME} file."
 		return 1
 	fi
-	if ! _RESULT_CODE=$("${CURLCMD}" -s -S -w '%{http_code}' -o "${SRCTOP}/${ASSET_SHA256_FILENAME}" -X GET "${ASSET_SHA256_DOWNLOAD_URL}" --insecure); then
+	if ! _RESULT_CODE=$("${CURLCMD}" -s -S -L -w '%{http_code}' -o "${SRCTOP}/${ASSET_SHA256_FILENAME}" -X GET "${ASSET_SHA256_DOWNLOAD_URL}" --insecure); then
 		PRNINFO "Failed to get sha256 file(${ASSET_SHA256_FILENAME})."
 		rm -f "${SRCTOP}/${ASSET_SHA256_FILENAME}" 2>/dev/null
 		return 1
