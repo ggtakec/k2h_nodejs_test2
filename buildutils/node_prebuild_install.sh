@@ -76,14 +76,14 @@ ASSET_SHA256_DOWNLOAD_URL=$("${MAKE_VARS_BIN}" --sha256-download-url)
 if [ -t 1 ] || { [ -n "${CI}" ] && [ "${CI}" = "true" ]; }; then
 #	CBLD=$(printf '\033[1m')
 #	CREV=$(printf '\033[7m')
-	CRED=$(printf '\033[31m')
+#	CRED=$(printf '\033[31m')
 #	CYEL=$(printf '\033[33m')
 	CGRN=$(printf '\033[32m')
 	CDEF=$(printf '\033[0m')
 else
 #	CBLD=""
 #	CREV=""
-	CRED=""
+#	CRED=""
 #	CYEL=""
 	CGRN=""
 	CDEF=""
