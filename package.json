@@ -1,6 +1,6 @@
 {
   "name": "@ggtakec/k2hnodejstest2",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Test2 for K2HASH addon library",
   "os": "linux",
   "main": "index.js",
