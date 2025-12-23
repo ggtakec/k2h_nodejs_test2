@@ -47,8 +47,8 @@
     "ts-node": "^10.9.2"
    },
   "scripts": {
-    "help": "echo 'command list:\n    npm run install\n    npm run install:onlypackages\n    npm run build\n    npm run build:ts\n    npm run build:ts:cjs\n    npm run build:ts:esm\n    npm run build:ts:tests:cjs\n    npm run build:types\n    npm run build:checktypes\n    npm run build:configure\n    npm run build:rebuild\n    npm run build:bundle:esm\n    npm run build:prebuild\n    npm run build:prebuild:pure\n    npm run prepublishOnly\n    npm run prepare\n    npm run lint\n    npm run test\n    npm run test:all\n    npm run test:smoke\n    npm run test:smoke:cjs\n    npm run test:smoke:esm\n    npm run test:smoke:ts\n    npm run test:k2hash\n    npm run test:k2hqueue\n    npm run test:k2hkeyqueue\n'",
-    "install": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Install' && ./buildutils/node_prebuild_install.sh || (echo '[INFO] No prebuilt binary found, building from source' && npm run build:rebuild) && echo '-> [DONE] Install\n'",
+    "help": "echo 'command list:\n    npm run install\n    npm run install:onlypackages\n    npm run build\n    npm run build:ts\n    npm run build:ts:cjs\n    npm run build:ts:esm\n    npm run build:ts:tests:cjs\n    npm run build:types\n    npm run build:checktypes\n    npm run build:configure\n    npm run build:rebuild\n    npm run build:bundle:esm\n    npm run build:prebuild\n    npm run build:prebuild:pure\n    npm run prepublishOnly\n    npm run lint\n    npm run test\n    npm run test:all\n    npm run test:smoke\n    npm run test:smoke:cjs\n    npm run test:smoke:esm\n    npm run test:smoke:ts\n    npm run test:k2hash\n    npm run test:k2hqueue\n    npm run test:k2hkeyqueue\n'",
+    "install": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Install' && ./buildutils/node_prebuild_install.sh || (echo '[INFO] No binaries found, so building from source\n' && if [ -d build/cjs ] && [ -d build/esm ]; then npm run build:rebuild; else npm run build; fi) && echo '-> [DONE] Install\n'",
     "install:onlypackages": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Install:onlypackages' && npm install --ignore-scripts && echo '-> [DONE] Install:onlypackages\n'",
     "build": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Build' && npm run build:checktypes && npm run build:configure && npm run build:rebuild && npm run build:ts && echo '-> [DONE] Build\n'",
     "build:ts": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Build:ts' && npm run build:ts:cjs && npm run build:ts:esm && echo '-> [DONE] Build:ts\n'",
@@ -62,7 +62,6 @@
     "build:prebuild": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Build:prebuild' && ./buildutils/node_prebuild.sh && echo '-> [DONE] Build:prebuild\n'",
     "build:prebuild:pure": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Build:prebuild:pure (for only prebuild confirmation)' && GYP_DEFINES=openssl_fips= prebuild --strip --napi --path prebuilds && echo '-> [DONE] Build:prebuild:pure\n'",
     "build:bundle:esm": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Build:bundle:esm' && echo '[NOTICE] Currently, rollup is NOT necessary, Does NOT use those outputed files, so do NOT run before packaging.' && rollup -c rollup.config.mjs && echo '-> [DONE] Build:bundle:esm\n'",
-    "prepare": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Prepare' && echo '[INFO] This \"prepare\" is called the npm lifecycle(before install, publish, etc).' && npm run build && echo '-> [DONE] Prepare\n'",
     "prepublishOnly": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] PrepublishOnly' && echo '[INFO] Currently, no implementation. If there are signatures and final inspections, etc., the processing will be implemented here.' && echo '-> [DONE] PrepublishOnly\n'",
     "lint": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Lint' && echo '[INFO] No linter configured' && echo '-> [DONE] Lint\n'",
     "test": "export NPM_CONFIG_LOGLEVEL=silent && echo '[START] Test' && if [ ! -f build/cjs/index.js ]; then npm run build || exit 1; fi && npm run test:all && echo '-> [DONE] Test\n'",
@@ -78,7 +77,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:ggtakec/k2h_nodejs_test.git"
+    "url": "git@github.com:ggtakec/k2h_nodejs_test2.git"
   },
   "publishConfig": {
     "access": "public"
@@ -97,7 +96,7 @@
     "addon"
   ],
   "bugs": {
-    "url": "http://github.com/ggtakec/k2h_nodejs_test/issues",
+    "url": "http://github.com/ggtakec/k2h_nodejs_test2/issues",
     "email": "ggtakec@gmail.com"
   },
   "author": "Takeshi Nakatani <ggtakec@gmail.com> (https://github.com/ggtakec)",

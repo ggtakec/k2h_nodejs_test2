@@ -106,7 +106,7 @@ jobs:
       #
       # [NOTE] Secrets
       # Use Secrets of organization or repository as parameters to
-      # pass to nodejs_addon_helper.sh for building and packaging, .
+      # pass to nodejs_addon_helper.sh for building and packaging.
       #
       # The available Secret variables are listed below:
       #    GITHUB_TOKEN               : Github token(automatically set by github actions)
@@ -118,8 +118,14 @@ jobs:
       #    PACKAGECLOUD_DOWNLOAD_REPO : repo name as a pat of path to packagcloud.io for downloading
       #    NPM_TOKEN                  : [Deprecated] The token for publishing to npm
       #
-      # Since we're using NPM Trusted publishing, there's no need to specify NPM_TOKEN.
-      # However, if you set NPM_TOKEN(not recommended), publishing will be performed using it.
+      # NPM Trusted Publisher for NPM package should be set, so you won't need
+      # to specify NPM_TOKEN.
+      # If you set NPM_TOKEN(not recommended), it will be used to publish.
+      # When publishing a package to an NPM repository, you need to upload the
+      #  package for the first time and then configure NPM Trusted Publisher.
+      # For this reason, specify NPM_TOKEN the first time you upload a package.
+      # From the second time onwards (after configuring NPM Trusted Publisher),
+      # delete NPM_TOKEN.
       #
       - name: Set environments from secrets
         run: |

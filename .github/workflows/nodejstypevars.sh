@@ -414,7 +414,7 @@ fi
 #	RUN_SHELLCHECK			1
 #	RUN_CHECK_OTHER			0
 #	RUN_PRE_BUILD			0
-#	RUN_BUILD				0
+#	RUN_BUILD				1
 #	RUN_POST_BUILD			0
 #	RUN_PRE_TEST			1
 #	RUN_TEST				1
@@ -471,7 +471,7 @@ fi
 #	run_shellcheck		: run shellcheck					yes
 #	run_othercheck		: run other checking				no
 #	run_pre_build		: before building					no
-#	run_build			: building							no
+#	run_build			: building							yes
 #	run_post_build		: after building					no
 #	run_pre_test		: before testing					yes
 #	run_test			: testing							yes

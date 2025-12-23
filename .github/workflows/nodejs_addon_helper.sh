@@ -588,7 +588,7 @@ RUN_CPPCHECK=1
 RUN_SHELLCHECK=1
 RUN_CHECK_OTHER=0
 RUN_PRE_BUILD=0
-RUN_BUILD=0
+RUN_BUILD=1
 RUN_POST_BUILD=0
 RUN_PRE_TEST=1
 RUN_TEST=1
@@ -611,7 +611,10 @@ run_pre_install()
 #
 run_install()
 {
-	if ! /bin/sh -c "npm install"; then
+	#
+	# Skip check binary and build locally
+	#
+	if ! /bin/sh -c "ANTPICKAX_SKIP_PREBUILD_INSTALL=true npm install"; then
 		PRNERR "Failed to run \"npm install\"."
 		return 1
 	fi
@@ -819,22 +822,10 @@ run_pre_build()
 #
 run_build()
 {
-	# [NOTE]
-	# In a NodeJS addon, the equivalent of build(npm run build) is
-	# executed by npm install(->prepare->build).
-	# It is possible to execute "npm run build" here, but since
-	# build would be executed twice in the series of executions,
-	# we will not call it here.
-	#
-	# If you want to run a build, write it as follows:
-	#	----------------------------------------------
-	#	if ! /bin/sh -c "npm run build"; then
-	#		PRNERR "Failed to run \"npm run build\"."
-	#		return 1
-	#	fi
-	#	----------------------------------------------
-	#
-	PRNWARN "Not implement process build (use install instead)."
+	if ! /bin/sh -c "npm run build"; then
+		PRNERR "Failed to run \"npm run build\"."
+		return 1
+	fi
 	return 0
 }
 

@@ -95,25 +95,9 @@ PRNTITLE()
 	echo "${CGRN}[TITLE]${CDEF} ${CGRN}$*${CDEF}"
 }
 
-#PRNMSG()
-#{
-#	echo ""
-#	echo "${CYEL}[MSG]${CDEF} ${CYEL}$*${CDEF}"
-#}
-
 PRNINFO()
 {
 	echo "[INFO] $*"
-}
-
-#PRNWARN()
-#{
-#	echo "${CYEL}[WARNING]${CDEF} ${CYEL}$*${CDEF}"
-#}
-
-PRNERR()
-{
-	echo "${CRED}[ERROR]${CDEF} ${CRED}$*${CDEF}"
 }
 
 PRNSUCCESS()
@@ -122,11 +106,6 @@ PRNSUCCESS()
 	echo "${CGRN}[SUCCEED]${CDEF} ${CGRN}$*${CDEF}"
 	echo ""
 }
-
-#PRNFAILURE()
-#{
-#	echo "${CBLD}${CRED}[FAILURE]${CDEF} ${CRED}$*${CDEF}"
-#}
 
 #==============================================================
 # Utility functons
@@ -140,7 +119,7 @@ check_and_download_asset_file()
 	# Check curl
 	#
 	if ! CURLCMD=$(command -v curl); then
-		PRNERR "Not found curl command"
+		PRNINFO "Not found curl command"
 		return 1
 	fi
 
@@ -148,31 +127,31 @@ check_and_download_asset_file()
 	# Download TGZ and sha256 file
 	#
 	if ! _RESULT_CODE=$("${CURLCMD}" -s -S -w '%{http_code}' -o "${SRCTOP}/${ASSET_TGZ_FILENAME}" -X GET "${ASSET_TGZ_DOWNLOAD_URL}" --insecure); then
-		PRNERR "Failed to get download tgz file(${ASSET_TGZ_FILENAME})."
-		rm -f "${SRCTOP}/${ASSET_TGZ_FILENAME}"
+		PRNINFO "Failed to get download tgz file(${ASSET_TGZ_FILENAME})."
+		rm -f "${SRCTOP}/${ASSET_TGZ_FILENAME}" 2>/dev/null
 		return 1
 	fi
 	if [ -z "${_RESULT_CODE}" ] || [ "${_RESULT_CODE}" -ne 200 ]; then
-		PRNERR "Not found ${ASSET_TGZ_FILENAME}(http status code: (${_RESULT_CODE})."
-		rm -f "${SRCTOP}/${ASSET_TGZ_FILENAME}"
+		PRNINFO "Not found ${ASSET_TGZ_FILENAME}(http status code: (${_RESULT_CODE})."
+		rm -f "${SRCTOP}/${ASSET_TGZ_FILENAME}" 2>/dev/null
 		return 1
 	fi
 	if [ ! -f "${SRCTOP}/${ASSET_TGZ_FILENAME}" ]; then
-		PRNERR "Not found ${ASSET_TGZ_FILENAME} file."
+		PRNINFO "Not found ${ASSET_TGZ_FILENAME} file."
 		return 1
 	fi
 	if ! _RESULT_CODE=$("${CURLCMD}" -s -S -w '%{http_code}' -o "${SRCTOP}/${ASSET_SHA256_FILENAME}" -X GET "${ASSET_SHA256_DOWNLOAD_URL}" --insecure); then
-		PRNERR "Failed to get sha256 file(${ASSET_SHA256_FILENAME})."
-		rm -f "${SRCTOP}/${ASSET_SHA256_FILENAME}"
+		PRNINFO "Failed to get sha256 file(${ASSET_SHA256_FILENAME})."
+		rm -f "${SRCTOP}/${ASSET_SHA256_FILENAME}" 2>/dev/null
 		return 1
 	fi
 	if [ -z "${_RESULT_CODE}" ] || [ "${_RESULT_CODE}" -ne 200 ]; then
-		PRNERR "Not found ${ASSET_SHA256_FILENAME}(http status code: (${_RESULT_CODE})."
-		rm -f "${SRCTOP}/${ASSET_SHA256_FILENAME}"
+		PRNINFO "Not found ${ASSET_SHA256_FILENAME}(http status code: ${_RESULT_CODE})."
+		rm -f "${SRCTOP}/${ASSET_SHA256_FILENAME}" 2>/dev/null
 		return 1
 	fi
 	if [ ! -f "${SRCTOP}/${ASSET_SHA256_FILENAME}" ]; then
-		PRNERR "Not found ${ASSET_SHA256_FILENAME} file."
+		PRNINFO "Not found ${ASSET_SHA256_FILENAME} file."
 		return 1
 	fi
 
@@ -181,21 +160,21 @@ check_and_download_asset_file()
 	#
 	SHA256_VALUE=$(awk '{print $1}' "${SRCTOP}/${ASSET_SHA256_FILENAME}" 2>/dev/null | tr -d '\n')
 	if ! DL_TGZ_SHA256_VALUE=$(sha256sum "${SRCTOP}/${ASSET_TGZ_FILENAME}" 2>/dev/null | awk '{print $1}' 2>/dev/null | tr -d '\n'); then
-		PRNERR "Failed to get sha256 value from download tgz file."
+		PRNINFO "Failed to make sha256 value from download tgz file."
 		return 1
 	fi
 	if [ -z "${SHA256_VALUE}" ] || [ -z "${DL_TGZ_SHA256_VALUE}" ] || [ "${SHA256_VALUE}" != "${DL_TGZ_SHA256_VALUE}" ]; then
-		PRNERR "Download tgz file is not same sha256 value."
+		PRNINFO "The sha256 value of the downloaded tgz file is incorrect."
 		return 1
 	fi
 
 	#
-	# Exract tgz file
+	# Exract file from tgz file
 	#
 	_CUR_DIR=$(pwd)
 	cd "${SRCTOP}" || exit 1
 	if ! tar xvfz "${SRCTOP}/${ASSET_TGZ_FILENAME}" >/dev/null 2>&1; then
-		PRNERR "Could not extract ${ASSET_TGZ_FILENAME} file."
+		PRNINFO "Could not extract files from ${ASSET_TGZ_FILENAME} file."
 		cd "${_CUR_DIR}" || exit 1
 		return 1
 	fi
@@ -205,7 +184,7 @@ check_and_download_asset_file()
 	# metadata.json file
 	#
 	if [ ! -f "${SRCTOP}/${META_JSON_FILE}" ]; then
-		PRNERR "Not found ${META_JSON_FILE} file."
+		PRNINFO "Not found ${META_JSON_FILE} file."
 		return 1
 	fi
 
@@ -224,14 +203,14 @@ check_and_download_asset_file()
 #==============================================================
 # [NOTE]
 # If ANTPICKAX_SKIP_PREBUILD_INSTALL is set (true/1), it will
-# return the same result as if the binary was not found.
+# return the same result as if the binary was found.
 #
 if [ -n "${ANTPICKAX_SKIP_PREBUILD_INSTALL}" ] && echo "${ANTPICKAX_SKIP_PREBUILD_INSTALL}" | grep -q -i -e 'true' -e '1'; then
 	#
 	# Skip all check
 	#
-	PRNINFO "ANTPICKAX_SKIP_PREBUILD_INSTALL Environment is set, so skip checking asset and local binaries."
-	exit 1
+	PRNSUCCESS "\"ANTPICKAX_SKIP_PREBUILD_INSTALL\" environment is set, so no binaries check and skip prebuild-install."
+	exit 0
 fi
 
 #==============================================================
